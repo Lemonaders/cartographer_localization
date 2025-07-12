@@ -1,0 +1,13 @@
+
+
+因为全局重定位需要读取所有的 **Submap** 数据和最新的点云数据，所以把代码加在 **PoseGraph2D** 模块里是最方便的，cartographer_ros 里也能调用到。
+
+首先就是接口的定义，cartographer_ros 里能通过 **MapBuilderBridge** 访问到 carto 的 **MapBuilder** 实例，而 **MapBuilder** 又能访问到 **PoseGraph**，所以我们只需要在 **PoseGraphInterface** 接口类中添加全局重定位的虚函数，然后在他的派生类 **PoseGraph2D** 中添加对应的实现。
+
+**PoseGraphInterface** 中添加的全局重定位的接口，我们的接口不需要传入点云滤波器，内部直接调体素滤波就行了。
+
+
+
+因为全局重定位需要读取所有的Submap数据和最新的点云数据，所以把代码加在PoseGraph模块里是最方便的，cartographer_ros里也能调用到。
+首先就是接口的定义，cartographer_ros里能通过MapBuilderBridge访问到carto的MapBuilder实例，而MapBuilder又能访问到PoseGraph，所以我们只需要在PoseGraph接口类中添加全局重定位的虚函数，然后在他的派生类（PoseGraph2D/PoseGraph3D）中添加对应的实现。
+PoseGraphInterface中添加的全局重定位的接口，我们的接口不需要传入点云滤波器，内部直接调体素滤波就行了。

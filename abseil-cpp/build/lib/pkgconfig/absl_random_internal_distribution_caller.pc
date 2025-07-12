@@ -1,0 +1,12 @@
+prefix=/usr/local/stow/absl
+exec_prefix=${prefix}
+libdir=/usr/local/stow/absl/lib
+includedir=/usr/local/stow/absl/include
+
+Name: absl_random_internal_distribution_caller
+Description: Abseil random_internal_distribution_caller library
+URL: https://abseil.io/
+Version: 20211102
+Requires: absl_config = 20211102, absl_utility = 20211102, absl_fast_type_id = 20211102
+Libs: -L${libdir}  
+Cflags: -I${includedir} -DNOMINMAX

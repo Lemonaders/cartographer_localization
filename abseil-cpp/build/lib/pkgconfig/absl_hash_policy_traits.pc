@@ -1,0 +1,12 @@
+prefix=/usr/local/stow/absl
+exec_prefix=${prefix}
+libdir=/usr/local/stow/absl/lib
+includedir=/usr/local/stow/absl/include
+
+Name: absl_hash_policy_traits
+Description: Abseil hash_policy_traits library
+URL: https://abseil.io/
+Version: 20211102
+Requires: absl_meta = 20211102
+Libs: -L${libdir}  
+Cflags: -I${includedir} -DNOMINMAX
