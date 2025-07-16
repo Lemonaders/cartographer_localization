@@ -25,6 +25,12 @@
 #include "cartographer_ros_msgs/StatusCode.h"
 #include "cartographer_ros_msgs/StatusResponse.h"
 
+
+//添加代码
+#include "cartographer/mapping/internal/2d/pose_graph_2d.h"
+
+
+
 namespace cartographer_ros {
 namespace {
 
@@ -95,6 +101,29 @@ void PushAndResetLineMarker(visualization_msgs::Marker* marker,
 }
 
 }  // namespace
+
+
+
+
+
+
+//添加代码
+bool MapBuilderBridge::GlobalPositioningTest( const cartographer::sensor::TimedPointCloud& laser_point_cloud,
+                                              float cutoff, 
+                                              ::cartographer::transform::Rigid2d* best_pose_estimate, 
+                                              float* best_score){
+      auto* pose_graph = dynamic_cast<cartographer::mapping::PoseGraph2D*>(
+            map_builder_->pose_graph());
+        if (!pose_graph) {
+            LOG(ERROR) << "Only 2D pose graph is supported";
+            return false;
+        }
+        return pose_graph->GlobalPositioningTest(laser_point_cloud, cutoff, 
+                                      best_pose_estimate, best_score);
+     }
+     
+
+
 
 MapBuilderBridge::MapBuilderBridge(
     const NodeOptions& node_options,

@@ -93,6 +93,14 @@ class PoseGraphInterface {
   PoseGraphInterface(const PoseGraphInterface&) = delete;
   PoseGraphInterface& operator=(const PoseGraphInterface&) = delete;
 
+
+
+  virtual bool GlobalPositioningTest(
+      const cartographer::sensor::TimedPointCloud& point_cloud, float cutoff, 
+      transform::Rigid2d* best_pose_estimate, float* best_score) = 0;
+
+
+
   // Waits for all computations to finish and computes optimized poses.
   virtual void RunFinalOptimization() = 0;
 

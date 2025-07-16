@@ -72,6 +72,19 @@ class MapBuilderBridge {
   MapBuilderBridge(const MapBuilderBridge&) = delete;
   MapBuilderBridge& operator=(const MapBuilderBridge&) = delete;
 
+
+
+//   添加代码
+  bool GlobalPositioningTest(const cartographer::sensor::TimedPointCloud& laser_point_cloud,
+                             float cutoff, 
+                             ::cartographer::transform::Rigid2d* best_pose_estimate, 
+                             float* best_score);
+
+
+
+
+
+
   void LoadState(const std::string& state_filename, bool load_frozen_state);
   int AddTrajectory(
       const std::set<

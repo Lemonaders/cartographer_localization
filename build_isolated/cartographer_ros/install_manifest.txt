@@ -55,6 +55,7 @@
 /home/so/carto_ws/install_isolated/lib/libcartographer_ros.a
 /home/so/carto_ws/install_isolated/include/cartographer_ros/assets_writer.h
 /home/so/carto_ws/install_isolated/include/cartographer_ros/map_builder_bridge.h
+/home/so/carto_ws/install_isolated/include/cartographer_ros/map_builder_bridge（复件）.h
 /home/so/carto_ws/install_isolated/include/cartographer_ros/metrics/family_factory.h
 /home/so/carto_ws/install_isolated/include/cartographer_ros/metrics/internal/counter.h
 /home/so/carto_ws/install_isolated/include/cartographer_ros/metrics/internal/family.h
@@ -62,6 +63,7 @@
 /home/so/carto_ws/install_isolated/include/cartographer_ros/metrics/internal/histogram.h
 /home/so/carto_ws/install_isolated/include/cartographer_ros/msg_conversion.h
 /home/so/carto_ws/install_isolated/include/cartographer_ros/node.h
+/home/so/carto_ws/install_isolated/include/cartographer_ros/node_bak.h
 /home/so/carto_ws/install_isolated/include/cartographer_ros/node_constants.h
 /home/so/carto_ws/install_isolated/include/cartographer_ros/node_options.h
 /home/so/carto_ws/install_isolated/include/cartographer_ros/offline_node.h

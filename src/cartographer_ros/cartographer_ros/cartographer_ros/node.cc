@@ -50,6 +50,12 @@
 
 
 
+// 添加代码
+#include "cartographer/transform/rigid_transform.h"
+
+
+
+
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <Eigen/Geometry>
 
@@ -166,6 +172,26 @@ Node::~Node() { FinishAllTrajectories(); }
 
 ::ros::NodeHandle* Node::node_handle() { return &node_handle_; }
 
+
+
+
+
+// 添加代码
+void Node::Save_LaserScan(const sensor_msgs::LaserScan::ConstPtr& msg){
+  matchlaserscan = msg;
+  ::cartographer::sensor::PointCloudWithIntensities point_cloud;
+  ::cartographer::common::Time time;
+  std::tie(point_cloud, time) = ToPointCloudWithIntensities(*msg);
+  const cartographer::sensor::TimedPointCloud& pure_point_cloud = point_cloud.points;
+  LOG(INFO) << "-----------------------------------------------------------------------------------\n"
+            <<"Laserscan data has been stored in the form of const cartographer:: sensor:: TimedPointCloud& \n"
+            <<"------------------------------------------------------------------------------------\n";
+}
+
+
+
+
+
 bool Node::HandleSubmapQuery(
     ::cartographer_ros_msgs::SubmapQuery::Request& request,
     ::cartographer_ros_msgs::SubmapQuery::Response& response) {
@@ -246,21 +272,21 @@ void Node::PublishLocalTrajectoryData(const ::ros::TimerEvent& timer_event) {
               point, 0.f /* time */));
         }
 
-        const auto& transform = trajectory_data.local_to_map.cast<float>();
-        Eigen::Matrix3f rotation_matrix = transform.rotation().matrix();
+        // const auto& transform = trajectory_data.local_to_map.cast<float>();
+        // Eigen::Matrix3f rotation_matrix = transform.rotation().matrix();
 
-        // 输出平移
-        Eigen::Vector3f translation = transform.translation();
+        // // 输出平移
+        // Eigen::Vector3f translation = transform.translation();
 
-        // 提取欧拉角（按Z-Y-X顺序，即yaw-pitch-roll）
-        Eigen::Vector3f euler_angles = rotation_matrix.eulerAngles(2, 1, 0); 
+        // // 提取欧拉角（按Z-Y-X顺序，即yaw-pitch-roll）
+        // Eigen::Vector3f euler_angles = rotation_matrix.eulerAngles(2, 1, 0); 
 
-        ROS_INFO_STREAM(
-            "Transform (x-y-z): " << translation.transpose()
-        );
-        ROS_INFO_STREAM(
-            "Transform (yaw-pitch-roll in radians): " << euler_angles.transpose()
-        );
+        // ROS_INFO_STREAM(
+        //     "Transform (x-y-z): " << translation.transpose()
+        // );
+        // ROS_INFO_STREAM(
+        //     "Transform (yaw-pitch-roll in radians): " << euler_angles.transpose()
+        // );
         
         scan_matched_point_cloud_publisher_.publish(ToPointCloud2Message(
             carto::common::ToUniversal(trajectory_data.local_slam_data->time),

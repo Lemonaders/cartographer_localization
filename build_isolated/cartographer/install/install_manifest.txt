@@ -73,6 +73,7 @@
 /home/so/carto_ws/install_isolated/include/cartographer/mapping/pose_extrapolator_interface.h
 /home/so/carto_ws/install_isolated/include/cartographer/mapping/pose_graph.h
 /home/so/carto_ws/install_isolated/include/cartographer/mapping/pose_graph_interface.h
+/home/so/carto_ws/install_isolated/include/cartographer/mapping/pose_graph_interface（复件）.h
 /home/so/carto_ws/install_isolated/include/cartographer/mapping/pose_graph_trimmer.h
 /home/so/carto_ws/install_isolated/include/cartographer/mapping/probability_values.h
 /home/so/carto_ws/install_isolated/include/cartographer/mapping/range_data_inserter_interface.h

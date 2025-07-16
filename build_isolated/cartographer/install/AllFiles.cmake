@@ -312,6 +312,8 @@
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/internal/2d/overlapping_submaps_trimmer_2d.cc
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/internal/2d/overlapping_submaps_trimmer_2d.h
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/internal/2d/overlapping_submaps_trimmer_2d_test.cc
+#/home/so/carto_ws/src/cartographer/cartographer/mapping/internal/2d/pose_graph_2d（复件）.cc
+#/home/so/carto_ws/src/cartographer/cartographer/mapping/internal/2d/pose_graph_2d（复件）.h
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/internal/2d/pose_graph_2d.cc
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/internal/2d/pose_graph_2d.h
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/internal/2d/pose_graph_2d_test.cc
@@ -470,6 +472,7 @@
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/pose_extrapolator_test.cc
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/pose_graph.cc
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/pose_graph.h
+#/home/so/carto_ws/src/cartographer/cartographer/mapping/pose_graph_interface（复件）.h
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/pose_graph_interface.h
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/pose_graph_test.cc
 #/home/so/carto_ws/src/cartographer/cartographer/mapping/pose_graph_trimmer.cc

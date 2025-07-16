@@ -7,10 +7,6 @@
 # new environment variables
 
 # modified environment variables
-export CMAKE_PREFIX_PATH='/home/so/carto_ws/devel_isolated/cartographer_ros_msgs:/opt/ros/noetic:/home/so/carto_ws/install_isolated'
-export LD_LIBRARY_PATH='/opt/ros/noetic/lib:/home/so/carto_ws/install_isolated/lib:/home/so/carto_ws/install_isolated/lib/x86_64-linux-gnu'
-export PATH='/opt/ros/noetic/bin:/home/so/carto_ws/install_isolated/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'
-export PKG_CONFIG_PATH='/opt/ros/noetic/lib/pkgconfig:/home/so/carto_ws/install_isolated/lib/pkgconfig:/home/so/carto_ws/install_isolated/lib/x86_64-linux-gnu/pkgconfig'
-export PYTHONPATH='/opt/ros/noetic/lib/python3/dist-packages:/home/so/carto_ws/install_isolated/lib/python3/dist-packages'
+export CMAKE_PREFIX_PATH="/home/so/carto_ws/devel_isolated/cartographer_ros_msgs:$CMAKE_PREFIX_PATH"
 export ROSLISP_PACKAGE_DIRECTORIES='/home/so/carto_ws/devel_isolated/cartographer_ros_msgs/share/common-lisp'
 export ROS_PACKAGE_PATH="/home/so/carto_ws/src/cartographer_ros/cartographer_ros_msgs:$ROS_PACKAGE_PATH"

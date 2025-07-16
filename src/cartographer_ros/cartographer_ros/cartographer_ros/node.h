@@ -64,6 +64,26 @@ class Node {
   Node(const Node&) = delete;
   Node& operator=(const Node&) = delete;
 
+
+
+//   添加代码
+  void Save_LaserScan(const sensor_msgs::LaserScan::ConstPtr& msg);
+  const cartographer::sensor::TimedPointCloud& Get_LaserScan() const {
+    return pure_point_cloud;   
+  };
+
+  bool GlobalPositioningTest(float cutoff, 
+                             ::cartographer::transform::Rigid2d* best_pose_estimate, 
+                             float* best_score){
+        absl::MutexLock lock(&mutex_);
+        return map_builder_bridge_.GlobalPositioningTest(
+                                    pure_point_cloud, cutoff, best_pose_estimate, best_score);
+  }
+
+
+
+
+
   // Finishes all yet active trajectories.
   void FinishAllTrajectories();
   // Finishes a single given trajectory. Returns false if the trajectory did not
@@ -182,6 +202,15 @@ class Node {
   absl::Mutex mutex_;
   std::unique_ptr<cartographer_ros::metrics::FamilyFactory> metrics_registry_;
   MapBuilderBridge map_builder_bridge_ GUARDED_BY(mutex_);
+
+
+
+//    添加代码
+  sensor_msgs::LaserScan::ConstPtr matchlaserscan;
+  cartographer::sensor::TimedPointCloud pure_point_cloud;
+
+
+
 
   ::ros::NodeHandle node_handle_;
   ::ros::Publisher submap_list_publisher_;

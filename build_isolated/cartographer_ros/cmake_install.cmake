@@ -183,6 +183,10 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/cartographer_ros" TYPE FILE FILES "/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/map_builder_bridge（复件）.h")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/cartographer_ros/metrics" TYPE FILE FILES "/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/metrics/family_factory.h")
 endif()
 
@@ -208,6 +212,10 @@ endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/cartographer_ros" TYPE FILE FILES "/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node.h")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/cartographer_ros" TYPE FILE FILES "/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_bak.h")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)

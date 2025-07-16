@@ -72,6 +72,91 @@ PoseGraph2D::~PoseGraph2D() {
   CHECK(work_queue_ == nullptr);
 }
 
+
+// 添加函数
+bool PoseGraph2D::GlobalPositioningTest(const cartographer::sensor::TimedPointCloud& laser_point_cloud,
+                                        float cutoff, 
+                                        transform::Rigid2d* best_pose_estimate, 
+                                        float* best_score)
+{
+    // auto thread_pool = std::make_unique<common::ThreadPool>(std::thread::hardware_concurrency());
+    // assert(thread_pool != nullptr);
+
+    // LOG(INFO) << "laser_point_cloud.points_.size(): " << laser_point_cloud.points().size();
+    // const sensor::PointCloud filtered_point_cloud = sensor::VoxelFilter(laser_point_cloud, 0.05);
+    // LOG(INFO) << "filtered_point_cloud.points_.size(): " << filtered_point_cloud.points().size();
+    // LOG(INFO) << "cutoff : " << cutoff;
+
+    // int32_t submap_size = static_cast<int>(data_.submap_data.size());
+    // absl::BlockingCounter created_counter{submap_size};
+
+    // // 如果后期优化需要调整传入子图数量和内容，调整此处
+    // std::vector<std::shared_ptr<scan_matching::FastCorrelativeScanMatcher2D>> matchers(submap_size);
+    // std::vector<const cartographer::mapping::Grid2D*> submaps(submap_size);
+    // LOG(INFO) << "Submap size: " << submap_size;
+
+    // size_t index = 0; 
+    // for (const auto& submap_id_data : data_.submap_data) {
+    //     if (submap_id_data.id.trajectory_id != 0) {
+    //         created_counter.DecrementCount();
+    //         continue;
+    //     }
+    //     auto task = absl::make_unique<common::Task>();
+    //     task->SetWorkItem([this, &matchers, &created_counter, index, submap_id = submap_id_data.id, &submaps] {
+    //         try {
+    //             const auto& submap_data = data_.submap_data.at(submap_id);
+    //             if (!submap_data.submap) {
+    //                 LOG(ERROR) << "Submap is null for index " << index;
+    //                 throw std::runtime_error("Submap is null");
+    //             }
+    //             submaps[index] = static_cast<const Submap2D*>(submap_data.submap.get())->grid();
+    //             matchers[index] = std::make_unique<scan_matching::FastCorrelativeScanMatcher2D>(
+    //                 *submaps[index],
+    //                 options_.constraint_builder_options().fast_correlative_scan_matcher_options());
+    //             LOG(INFO) << "Task completed for index: " << index;
+    //         } catch (const std::exception& e) {
+    //             LOG(ERROR) << "Error in task for index " << index << ": " << e.what();
+    //         }
+    //         created_counter.DecrementCount();
+    //     });
+
+    //     my_thread_pool->Schedule(std::move(task));
+    //     index++;
+    // }
+
+    // LOG(INFO) << "Total submaps processed: " << index;
+    // created_counter.Wait();
+
+
+    // task->SetWorkItem([this, &matchers, &created_counter, index, submap_id = submap_id_data.id, &submaps] {
+    //         submaps.at(index) = static_cast<const Submap2D*>(data_.submap_data.at(submap_id).submap.get())->grid();
+    //         matchers.at(index) =  std::make_unique<scan_matching::FastCorrelativeScanMatcher2D>(
+    //             *(submaps.at(index)),
+    //             options_.constraint_builder_options().fast_correlative_scan_matcher_options());
+    //         created_counter.DecrementCount();
+    //     });
+    //     pool->Schedule(std::move(task));
+    //     index++;
+    // }
+    // created_counter.Wait();
+
+    
+    LOG(INFO) << "----------------------------------------------------------\n"
+              << "PoseGraph2D: PerformGlobaLocalization successfully entered\n"
+              << "----------------------------------------------------------\n";
+    return true;
+
+
+  }
+
+
+
+
+
+
+
+
+
 std::vector<SubmapId> PoseGraph2D::InitializeGlobalSubmapPoses(
     const int trajectory_id, const common::Time time,
     const std::vector<std::shared_ptr<const Submap2D>>& insertion_submaps) {

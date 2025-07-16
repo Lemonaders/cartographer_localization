@@ -13,6 +13,8 @@
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/dev/pbstream_trajectories_to_rosbag_main.cc
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/dev/rosbag_publisher_main.cc
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/dev/trajectory_comparison_main.cc
+#/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/map_builder_bridge（复件）.cc
+#/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/map_builder_bridge（复件）.h
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/map_builder_bridge.cc
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/map_builder_bridge.h
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/metrics
@@ -29,11 +31,13 @@
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/msg_conversion.cc
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/msg_conversion.h
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/msg_conversion_test.cc
+#/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_bak.cc
+#/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_bak.h
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node.cc
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_constants.cc
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_constants.h
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node.h
-#/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_main（复件）.cc
+#/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_main_bak.cc
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_main.cc
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_options.cc
 #/home/so/carto_ws/src/cartographer_ros/cartographer_ros/cartographer_ros/node_options.h

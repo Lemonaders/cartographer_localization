@@ -25,8 +25,13 @@
 // 添加代码
 #include "cartographer_ros/msg_conversion.h"
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <sensor_msgs/LaserScan.h>
 cartographer_ros::Node* node_handle;
 cartographer_ros::TrajectoryOptions* trajectory_options_handle;
+absl::Mutex laser_mutex_;   // 线程安全读写
+ros::Subscriber laserscan_sub;
+
+
 
 
 DEFINE_bool(collect_metrics, false,
@@ -55,8 +60,37 @@ namespace cartographer_ros {
 namespace {
 
 
+
+
+
+
+
 // 添加代码
+void LaserScan_callback(const sensor_msgs::LaserScan::ConstPtr& msg) {
+  absl::MutexLock lock(&laser_mutex_);
+  node_handle -> Save_LaserScan(msg); 
+  ROS_INFO("LaserScan Saved!");
+  laserscan_sub.shutdown();
+}
+
+
 void Reset_InitPose_callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) {
+
+    constexpr float Cutoff = 0.5f; // 可配置参数
+    cartographer::transform::Rigid2d init_pose;
+    float best_score;
+    
+    if (!node_handle -> GlobalPositioningTest( Cutoff, &init_pose, &best_score)) {
+        LOG(ERROR) << "Relocalization failed";
+        return;
+    }
+    
+    LOG(INFO) << "<<<<<<<<<<<<<<<<<<<<OK>>>>>>>>>>>>>>>>>>>> \n" ;
+    // LOG(INFO) << "Relocalization succeeded with score: " << best_score
+              // << " Pose: " << init_pose;
+
+
+
   // 关闭当前运行的Trajectories
   node_handle->FinishAllTrajectories();
   // 给轨迹设置起点 msg->pose.pose
@@ -69,8 +103,13 @@ void Reset_InitPose_callback(const geometry_msgs::PoseWithCovarianceStamped::Con
     node_handle->StartTrajectoryWithDefaultTopics(*trajectory_options_handle);
   }
 }
-
   
+
+
+
+
+
+
 void Run() {
   constexpr double kTfBufferCacheTimeInSeconds = 10.;
   tf2_ros::Buffer tf_buffer{::ros::Duration(kTfBufferCacheTimeInSeconds)};
@@ -94,7 +133,7 @@ void Run() {
   // 添加代码
   trajectory_options_handle = &(trajectory_options);
   node_handle = &(node);
-  // 添加代码
+  laserscan_sub = node.node_handle()->subscribe("/scan", 1, LaserScan_callback);
   ros::Subscriber initPose_sub = node.node_handle()->subscribe("/initialpose", 1, Reset_InitPose_callback);
 
   ::ros::spin();

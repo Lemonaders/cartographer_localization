@@ -81,6 +81,17 @@ class PoseGraph3D : public PoseGraph {
       const std::vector<std::shared_ptr<const Submap3D>>& insertion_submaps)
       LOCKS_EXCLUDED(mutex_);
 
+
+
+//仅供2d使用，3d该函数无效
+    bool GlobalPositioningTest(
+        const sensor::TimedPointCloud& point_cloud,
+        float cutoff,
+        transform::Rigid2d* best_pose_estimate,
+        float* best_score) override;
+
+
+
   void AddImuData(int trajectory_id, const sensor::ImuData& imu_data) override
       LOCKS_EXCLUDED(mutex_);
   void AddOdometryData(int trajectory_id,

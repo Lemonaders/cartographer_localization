@@ -62,6 +62,23 @@ PoseGraph3D::~PoseGraph3D() {
   CHECK(work_queue_ == nullptr);
 }
 
+
+
+
+bool PoseGraph3D::GlobalPositioningTest(
+    const sensor::TimedPointCloud&,
+    float,
+    transform::Rigid2d*,
+    float*) {
+  LOG(WARNING) << "GlobalPositioningTest not implemented for 3D";
+  return false;
+}
+
+
+
+
+
+
 std::vector<SubmapId> PoseGraph3D::InitializeGlobalSubmapPoses(
     const int trajectory_id, const common::Time time,
     const std::vector<std::shared_ptr<const Submap3D>>& insertion_submaps) {

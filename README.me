@@ -1,1 +1,22 @@
 编译：catkin_make_isolated --install --use-ninja
+
+方案一：修改文件说明
+	1、node_main.cc：				添加了initpose的订阅，通过callback实现trajectories以新位姿的重新启动。
+	2、occupancy_grid_node_main：	添加了标志位，在launch中设置参数来决定是否发布地图更新。
+	3、添加了	  map.launch
+				localization.launch
+				map.lua
+				localization.lua
+
+方案二：文件修改说明：
+	1、/src/cartographer/cartographer/cartographer/mapping/pose_graph_interface.h  		添加纯虚函数GlobalPositioningTest()
+	2、/src/cartographer/cartographer/cartographer/mapping/internal/2d/pose_graph_2d.h  添加函数声明GlobalPositioningTest()
+	3、/src/cartographer/cartographer/cartographer/mapping/internal/2d/pose_graph_2d.cc 编写函数实现
+	4、/src/cartographer_ros/cartographer_ros/cartographer_ros/map_builder_bridge.h     编写GlobalPositioningTest函数调用接口
+	5、/src/cartographer_ros/cartographer_ros/cartographer_ros/map_builder_bridge.cc    编写GlobalPositioningTest函数调用接口
+	6、/src/cartographer/cartographer/mapping/internal/3d/pose_graph_3d.h				仅供虚函数实现，3d中函数无意义*
+	7、/src/cartographer/cartographer/mapping/internal/3d/pose_graph_3d.cc				仅供虚函数实现，3d中函数无意义*
+	8、/src/cartographer_ros/cartographer_ros/cartographer_ros/node.h					写入点云缓存与点云获取函数
+	9、/src/cartographer_ros/cartographer_ros/cartographer_ros/node.cc					写入点云缓存与点云获取函数
+	10、/install_isolated/include/cartographer下mapping和sensor文件夹下复制了internal      避免posegraph2d编译错误
+
