@@ -65,7 +65,7 @@ PoseGraph3D::~PoseGraph3D() {
 
 
 
-bool PoseGraph3D::GlobalPositioningTest(
+bool PoseGraph3D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_initial_pose,
     const sensor::TimedPointCloud&,
     float,
     transform::Rigid2d*,

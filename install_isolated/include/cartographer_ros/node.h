@@ -68,16 +68,13 @@ class Node {
 
 //   添加代码
   void Save_LaserScan(const sensor_msgs::LaserScan::ConstPtr& msg);
-  const cartographer::sensor::TimedPointCloud& Get_LaserScan() const {
-    return pure_point_cloud;   
-  };
-
-  bool GlobalPositioningTest(float cutoff, 
+  bool GlobalPositioningTest(cartographer::transform::Rigid3d Given_initial_pose,
+                             float cutoff, 
                              ::cartographer::transform::Rigid2d* best_pose_estimate, 
                              float* best_score){
         absl::MutexLock lock(&mutex_);
         return map_builder_bridge_.GlobalPositioningTest(
-                                    pure_point_cloud, cutoff, best_pose_estimate, best_score);
+                                   Given_initial_pose, pure_point_cloud, cutoff, best_pose_estimate, best_score);
   }
 
 

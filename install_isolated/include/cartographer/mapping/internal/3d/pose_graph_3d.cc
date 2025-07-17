@@ -66,6 +66,7 @@ PoseGraph3D::~PoseGraph3D() {
 
 //仅供2d使用，3d该函数无效
 bool PoseGraph3D::GlobalPositioningTest(
+  cartographer::transform::Rigid3d Given_initial_pose,
     const sensor::PointCloud&,
     float,
     transform::Rigid2d*,

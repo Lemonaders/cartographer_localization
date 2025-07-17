@@ -178,14 +178,10 @@ Node::~Node() { FinishAllTrajectories(); }
 
 // 添加代码
 void Node::Save_LaserScan(const sensor_msgs::LaserScan::ConstPtr& msg){
-  matchlaserscan = msg;
   ::cartographer::sensor::PointCloudWithIntensities point_cloud;
   ::cartographer::common::Time time;
-  std::tie(point_cloud, time) = ToPointCloudWithIntensities(*msg);
-  const cartographer::sensor::TimedPointCloud& pure_point_cloud = point_cloud.points;
-  LOG(INFO) << "-----------------------------------------------------------------------------------\n"
-            <<"Laserscan data has been stored in the form of const cartographer:: sensor:: TimedPointCloud& \n"
-            <<"------------------------------------------------------------------------------------\n";
+  std::tie(point_cloud, time) = ToPointCloudWithIntensities(*msg);  //经此函数点云数量会减少
+  pure_point_cloud = point_cloud.points;
 }
 
 

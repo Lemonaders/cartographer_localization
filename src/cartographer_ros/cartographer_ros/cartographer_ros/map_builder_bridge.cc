@@ -108,7 +108,8 @@ void PushAndResetLineMarker(visualization_msgs::Marker* marker,
 
 
 //添加代码
-bool MapBuilderBridge::GlobalPositioningTest( const cartographer::sensor::TimedPointCloud& laser_point_cloud,
+bool MapBuilderBridge::GlobalPositioningTest( cartographer::transform::Rigid3d Given_initial_pose,
+                                              const cartographer::sensor::TimedPointCloud& laser_point_cloud,
                                               float cutoff, 
                                               ::cartographer::transform::Rigid2d* best_pose_estimate, 
                                               float* best_score){
@@ -118,7 +119,7 @@ bool MapBuilderBridge::GlobalPositioningTest( const cartographer::sensor::TimedP
             LOG(ERROR) << "Only 2D pose graph is supported";
             return false;
         }
-        return pose_graph->GlobalPositioningTest(laser_point_cloud, cutoff, 
+        return pose_graph->GlobalPositioningTest(Given_initial_pose, laser_point_cloud, cutoff, 
                                       best_pose_estimate, best_score);
      }
      

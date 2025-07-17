@@ -75,7 +75,8 @@ class MapBuilderBridge {
 
 
 //   添加代码
-  bool GlobalPositioningTest(const cartographer::sensor::TimedPointCloud& laser_point_cloud,
+  bool GlobalPositioningTest(cartographer::transform::Rigid3d Given_initial_pose,
+                             const cartographer::sensor::TimedPointCloud& laser_point_cloud,
                              float cutoff, 
                              ::cartographer::transform::Rigid2d* best_pose_estimate, 
                              float* best_score);

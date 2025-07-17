@@ -95,7 +95,7 @@ class PoseGraphInterface {
 
 
 
-  virtual bool GlobalPositioningTest(
+  virtual bool GlobalPositioningTest(cartographer::transform::Rigid3d Given_initial_pose,
       const cartographer::sensor::TimedPointCloud& point_cloud, float cutoff, 
       transform::Rigid2d* best_pose_estimate, float* best_score) = 0;
 

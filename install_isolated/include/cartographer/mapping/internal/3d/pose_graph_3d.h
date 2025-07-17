@@ -85,6 +85,7 @@ class PoseGraph3D : public PoseGraph {
 
 //仅供2d使用，3d该函数无效
     bool GlobalPositioningTest(
+        cartographer::transform::Rigid3d Given_initial_pose,
         const sensor::PointCloud& point_cloud,
         float cutoff,
         transform::Rigid2d* best_pose_estimate,

@@ -76,27 +76,26 @@ void LaserScan_callback(const sensor_msgs::LaserScan::ConstPtr& msg) {
 
 void Reset_InitPose_callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) {
 
-    constexpr float Cutoff = 0.5f; // 可配置参数
-    cartographer::transform::Rigid2d init_pose;
-    float best_score;
-    
-    if (!node_handle -> GlobalPositioningTest( Cutoff, &init_pose, &best_score)) {
-        LOG(ERROR) << "Relocalization failed";
-        return;
-    }
-    
-    LOG(INFO) << "<<<<<<<<<<<<<<<<<<<<OK>>>>>>>>>>>>>>>>>>>> \n" ;
-    // LOG(INFO) << "Relocalization succeeded with score: " << best_score
-              // << " Pose: " << init_pose;
-
-
 
   // 关闭当前运行的Trajectories
   node_handle->FinishAllTrajectories();
-  // 给轨迹设置起点 msg->pose.pose
-  // start trajectory with initial pose
-  *trajectory_options_handle->trajectory_builder_options.mutable_initial_trajectory_pose()->mutable_relative_pose()
-    = cartographer::transform::ToProto(cartographer_ros::ToRigid3d(msg->pose.pose));
+
+  constexpr float Cutoff = 0.5f; // 可配置参数
+  cartographer::transform::Rigid2d init_pose;
+  cartographer::transform::Rigid3d Given_initial_pose = cartographer_ros::ToRigid3d(msg->pose.pose);
+  float best_score;
+  
+  if (!node_handle -> GlobalPositioningTest(Given_initial_pose, Cutoff, &init_pose, &best_score)) {
+      LOG(ERROR) << "Relocalization failed";
+      return;
+    }
+
+  cartographer::transform::Rigid3d init_pose_3d = 
+        cartographer::transform::Embed3D(init_pose);
+
+  auto* proto_pose = trajectory_options_handle->trajectory_builder_options.mutable_initial_trajectory_pose()->mutable_relative_pose();
+  *proto_pose = cartographer::transform::ToProto(init_pose_3d);
+
   // 重新开启Trajectory
   if (FLAGS_start_trajectory_with_default_topics) 
   {
