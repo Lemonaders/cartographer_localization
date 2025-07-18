@@ -116,7 +116,7 @@ if(NOT "include;/usr/include/pcl-1.10;/usr/include/eigen3;/usr/include " STREQUA
   endforeach()
 endif()
 
-set(libraries "cartographer_ros;/usr/lib/x86_64-linux-gnu/libpcl_common.so;/usr/lib/x86_64-linux-gnu/libboost_system.so.1.71.0;/usr/lib/x86_64-linux-gnu/libboost_filesystem.so;/usr/lib/x86_64-linux-gnu/libboost_date_time.so;/usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.71.0;/usr/lib/x86_64-linux-gnu/libboost_regex.so")
+set(libraries "cartographer_ros;/usr/lib/x86_64-linux-gnu/libpcl_common.so;optimized;/usr/lib/x86_64-linux-gnu/libboost_system.so.1.71.0;debug;/usr/lib/x86_64-linux-gnu/libboost_system.so;/usr/lib/x86_64-linux-gnu/libboost_filesystem.so;/usr/lib/x86_64-linux-gnu/libboost_date_time.so;optimized;/usr/lib/x86_64-linux-gnu/libboost_iostreams.so.1.71.0;debug;/usr/lib/x86_64-linux-gnu/libboost_iostreams.so;/usr/lib/x86_64-linux-gnu/libboost_regex.so")
 foreach(library ${libraries})
   # keep build configuration keywords, generator expressions, target names, and absolute libraries as-is
   if("${library}" MATCHES "^(debug|optimized|general)$")

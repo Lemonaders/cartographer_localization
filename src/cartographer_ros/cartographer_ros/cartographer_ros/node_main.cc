@@ -66,19 +66,19 @@ namespace {
 
 
 // 添加代码
-void LaserScan_callback(const sensor_msgs::LaserScan::ConstPtr& msg) {
-  absl::MutexLock lock(&laser_mutex_);
-  node_handle -> Save_LaserScan(msg); 
-  ROS_INFO("LaserScan Saved!");
-  laserscan_sub.shutdown();
-}
-
-
 void Reset_InitPose_callback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) {
-
+  absl::MutexLock lock(&laser_mutex_);
 
   // 关闭当前运行的Trajectories
   node_handle->FinishAllTrajectories();
+
+  sensor_msgs::LaserScan::ConstPtr laser_msg =
+      ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", *(node_handle->node_handle()), ros::Duration(0.5));
+  if (!laser_msg) {
+    ROS_WARN("No LaserScan received within 0.5s, skip reset.");
+    return;
+  }
+  node_handle->Save_LaserScan(laser_msg);
 
   constexpr float Cutoff = 0.5f; // 可配置参数
   cartographer::transform::Rigid2d init_pose;
@@ -95,6 +95,9 @@ void Reset_InitPose_callback(const geometry_msgs::PoseWithCovarianceStamped::Con
 
   auto* proto_pose = trajectory_options_handle->trajectory_builder_options.mutable_initial_trajectory_pose()->mutable_relative_pose();
   *proto_pose = cartographer::transform::ToProto(init_pose_3d);
+  //利用initpose直接重启轨迹的定位测试代码
+  // auto* proto_pose = trajectory_options_handle->trajectory_builder_options.mutable_initial_trajectory_pose()->mutable_relative_pose();
+  // *proto_pose = cartographer::transform::ToProto(cartographer_ros::ToRigid3d(msg->pose.pose));
 
   // 重新开启Trajectory
   if (FLAGS_start_trajectory_with_default_topics) 
@@ -132,7 +135,6 @@ void Run() {
   // 添加代码
   trajectory_options_handle = &(trajectory_options);
   node_handle = &(node);
-  laserscan_sub = node.node_handle()->subscribe("/scan", 1, LaserScan_callback);
   ros::Subscriber initPose_sub = node.node_handle()->subscribe("/initialpose", 1, Reset_InitPose_callback);
 
   ::ros::spin();

@@ -38,7 +38,7 @@ TODO:	（一）限制并发全图匹配的子图数量。
 		（五）尝试优化
 			尝试将submap匹配器与scan匹配过程加快，是否因为资源竞争导致的匹配速度慢？是否因为线程优先级不够导致的速度较慢？
 
-		（六）重定位点云更新
+		（六）完成---------重定位点云更新
 			目前点云回调只在重启时缓存一帧，如果在开机后机器人发生移动，缓存点云信息便会失去实时性，
 			尝试initpose回调中重启点云回调，或者直接读取实时点云信息。
 
@@ -46,3 +46,22 @@ TODO:	（一）限制并发全图匹配的子图数量。
 			pose_graph_2d.cc
 			114  double search_submap_range = 10.0; //m
 			该参数限制了检测子图范围，为内定参数，后期可想办法暴露至lua中设置
+
+
+参考网址：
+		1、Ubuntu20.04安装
+			https://blog.csdn.net/qq_52013849/article/details/137640018
+		2、Ubuntu20.04下Turtlebot3机器人仿真
+			https://blog.csdn.net/qq_45980067/article/details/123585447
+		3、Cartographer建图实操
+			https://zhuanlan.zhihu.com/p/354723907
+		4、ROS参数服务器实现重定位
+			https://blog.csdn.net/weixin_44923488/article/details/115279437
+			https://blog.csdn.net/weixin_43259286/article/details/106643625
+		5、Rviz参数定位方法
+			https://www.codeleading.com/article/79245429544/
+		6、cartographer参数调优
+			https://blog.csdn.net/xjblalala/article/details/125049642
+		7、源码修改的静图匹配方案
+			https://www.bilibili.com/opus/826735347140395032
+			https://github.com/zkk123456/cartographer_global_relocation

@@ -42,7 +42,8 @@
 // 添加代码
 #include "absl/synchronization/blocking_counter.h"
 #include "cartographer/sensor/point_cloud.h"
-// #include "cartographer/transform/rigid_transform.h"
+#include <chrono>
+
 
 
 
@@ -119,7 +120,7 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
         cartographer::sensor::RangefinderPoint{p.position});
 
   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<！！！！！！>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  // ！！！注意！！！  该size读取的submap包含轨迹0的冻结submap以及所有的活动submap，因此需要程序启动后小车保持静止，或者改写此处代码只读取轨迹0的冻结submap
+  //                                                     重定位时需要保持小车保持静止
   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<！！！！！！>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   // 基于初始位姿筛选子图
   for (const auto& submap_id_data : data_.submap_data) {
@@ -148,7 +149,7 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
 
   for (const auto& id : nearby_submaps) 
     {
-      const auto& standby_submap = data_.submap_data.at(id);
+      // const auto& standby_submap = data_.submap_data.at(id);
         auto task = absl::make_unique<common::Task>();
         task->SetWorkItem([this, &matchers, &created_counter, index, submap_id = id, &submaps] {
             try {
@@ -181,10 +182,19 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
     absl::BlockingCounter matched_counter{static_cast<int>(matcher_size)};
     std::atomic_bool has_matched{false};   
 
+    //计时相关
+    std::vector<double> task_durations(static_cast<int>(matcher_size), 0.0);  // 存储每个任务耗时(毫秒)
+    std::mutex timing_mutex; 
+
+
+
     for (size_t i = 0; i < matcher_size; i++) 
     {
         auto task = absl::make_unique<common::Task>();
-        task->SetWorkItem([i, &filtered_point_cloud, &matchers, &score_set, &pose_set, cutoff, &matched_counter, &has_matched] {
+        task->SetWorkItem([i, &filtered_point_cloud, &matchers, &score_set, &pose_set, cutoff, &matched_counter, &has_matched, &task_durations, &timing_mutex] {
+          //计时开始
+          auto start_time = std::chrono::steady_clock::now();
+
             if (!matchers[i]) 
             {
                 LOG(ERROR) << "Matcher is null at index " << i;
@@ -206,6 +216,18 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
             } catch (const std::exception& e) {
                 LOG(ERROR) << "Exception in MatchFullSubmap at index " << i << ": " << e.what();
             }
+            
+        // 记录任务结束时间并计算持续时间
+        auto end_time = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        // 安全存储计时结果
+        {
+            std::lock_guard<std::mutex> lock(timing_mutex);
+            task_durations[i] = duration.count();
+        }
+        LOG(INFO) << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+                  << "Task " << i << " completed in " << duration.count() << " ms";
+
 
             matched_counter.DecrementCount();
         });
@@ -239,7 +261,7 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
   LOG(INFO) << "\n"
             << "---------------------------------------------------\n"
             << "data_.submap_data.size() =" << data_.submap_data.size() << "\n"
-            << "(20m)nearby_submaps.size() =" << nearby_submaps.size() << "\n"
+            << "(" << search_submap_range << "m)nearby_submaps.size() =" << nearby_submaps.size() << "\n"
             << "^^^^^^^^Compare it with the number of frozen submaps published on the `/submap_list` topic.^^^^^^^^\n"
             << "[GlobalPositioningTest] cutoff:" <<  cutoff << "\n"
             << "filtered_point_cloud.points_.size(): " << filtered_point_cloud.size() << "\n"
@@ -256,7 +278,7 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
 
 
 
-  
+
 
 std::vector<SubmapId> PoseGraph2D::InitializeGlobalSubmapPoses(
     const int trajectory_id, const common::Time time,
