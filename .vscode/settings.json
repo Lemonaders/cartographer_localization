@@ -70,6 +70,8 @@
         "cfenv": "cpp",
         "any": "cpp",
         "regex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "*.inc": "cpp",
+        "*.txx": "cpp"
     }
 }

@@ -91,6 +91,199 @@ PoseGraph2D::~PoseGraph2D() {
 
 
 // 添加函数
+// bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_initial_pose,
+//                                         const cartographer::sensor::TimedPointCloud& laser_point_cloud,
+//                                         float cutoff, 
+//                                         transform::Rigid2d* best_pose_estimate, 
+//                                         float* best_score){
+//     // ---------- 输入检测 ----------
+//   if (laser_point_cloud.empty()) {
+//   LOG(ERROR) << "\n"
+//                 << "<<<<<<<<<<<<<<<<<<<<<<WARNING>>>>>>>>>>>>>>>>>>>>>>\n"
+//                 << "[GlobalPositioningTest] laser_point_cloud is empty.\n"
+//                 << "<<<<<<<<<<<<<<<<<<<<<<WARNING>>>>>>>>>>>>>>>>>>>>>>\n";
+//   }
+//   LOG(INFO) << "\n"
+//                 << "---------------------------------------------------\n"
+//                 << "[GlobalPositioningTest] Given_initial_pose:" << Given_initial_pose.DebugString() << ".\n"
+//                 << "---------------------------------------------------\n";
+
+//   auto thread_pool = std::make_unique<common::ThreadPool>(std::thread::hardware_concurrency());
+//   assert(thread_pool != nullptr);
+//   cartographer::sensor::PointCloud filtered_point_cloud;
+//   //子图扫描范围
+//   double search_submap_range = 10.0; //m
+//   std::vector<cartographer::mapping::SubmapId> nearby_submaps;
+
+//   for (const auto& p : cartographer::sensor::VoxelFilter(laser_point_cloud, 0.05))
+//     filtered_point_cloud.push_back(
+//         cartographer::sensor::RangefinderPoint{p.position});
+
+//   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<！！！！！！>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//   //                                                     重定位时需要保持小车保持静止
+//   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<！！！！！！>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//   // 基于初始位姿筛选子图
+//   for (const auto& submap_id_data : data_.submap_data) {
+//     const SubmapId& id = submap_id_data.id;
+
+//     if (id.trajectory_id != 0) {
+//       continue;
+//     }
+
+//     const auto global_submap_pose = data_.global_submap_poses_2d.at(id).global_pose;
+//     const double distance = 
+//       (global_submap_pose.translation() - 
+//         Given_initial_pose.translation().head<2>()).norm();
+    
+//     if (distance <= search_submap_range) {
+//       nearby_submaps.push_back(id);
+//     }
+//   }
+//   // 创建submap数量的FastCorrelativeScanMatcher2D
+//   int32_t submap_size = static_cast<int>(nearby_submaps.size());
+//   absl::BlockingCounter created_counter{submap_size};
+
+//   std::vector<std::shared_ptr<scan_matching::FastCorrelativeScanMatcher2D>> matchers(submap_size);
+//   std::vector<const cartographer::mapping::Grid2D*> submaps(submap_size);
+//   size_t index = 0;
+
+//   for (const auto& id : nearby_submaps) 
+//     {
+//         auto task = absl::make_unique<common::Task>();
+//         task->SetWorkItem([this, &matchers, &created_counter, index, submap_id = id, &submaps] {
+//             try {
+//                 const auto& submap_data = data_.submap_data.at(submap_id);
+//                 if (!submap_data.submap) {
+//                     LOG(ERROR) << "Submap is null for index " << index;
+//                     throw std::runtime_error("Submap is null");
+//                 }
+//                 submaps[index] = static_cast<const Submap2D*>(submap_data.submap.get())->grid();
+//                 matchers[index] = std::make_unique<scan_matching::FastCorrelativeScanMatcher2D>(
+//                     *submaps[index],
+//                     options_.constraint_builder_options().fast_correlative_scan_matcher_options());
+//                 LOG(INFO) << "Task completed for index: " << index;
+//             } catch (const std::exception& e) {
+//                 LOG(ERROR) << "Error in task for index " << index << ": " << e.what();
+//             }
+//             created_counter.DecrementCount();
+//         });
+
+//         thread_pool->Schedule(std::move(task));
+//         index++;
+//     }
+//     LOG(INFO) << "Total submaps processed: " << index;
+//     created_counter.Wait();
+
+//     //位姿与得分
+//     size_t matcher_size = index;
+//     std::vector<float> score_set(static_cast<int>(matcher_size), -std::numeric_limits<float>::infinity());
+//     std::vector<transform::Rigid2d> pose_set(matcher_size);    
+//     absl::BlockingCounter matched_counter{static_cast<int>(matcher_size)};
+//     std::atomic_bool has_matched{false};   
+
+//     //计时相关
+//     std::vector<double> task_durations(static_cast<int>(matcher_size), 0.0);  // 存储每个任务耗时(毫秒)
+//     std::mutex timing_mutex; 
+
+
+
+//     for (size_t i = 0; i < matcher_size; i++) 
+//     {
+//         auto task = absl::make_unique<common::Task>();
+//         task->SetWorkItem([i, &filtered_point_cloud, &matchers, &score_set, &pose_set, cutoff, &matched_counter, &has_matched, &task_durations, &timing_mutex] {
+//           //计时开始                                             
+//           auto start_time = std::chrono::steady_clock::now();
+
+//             if (!matchers[i]) 
+//             {
+//                 LOG(ERROR) << "Matcher is null at index " << i;
+//                 matched_counter.DecrementCount();
+//                 return;
+//             }
+//             float score = -1;
+//             transform::Rigid2d pose_estimate = transform::Rigid2d::Identity();
+//             LOG(INFO) << "Processing2 matcher index: " << i;
+//             try {
+//                 if (matchers[i]->MatchFullSubmap(filtered_point_cloud, cutoff, &score, &pose_estimate)) 
+//                 {
+//                     score_set[i] = score;
+//                     pose_set[i] = pose_estimate;
+//                     has_matched = true;
+//                 } else {
+//                   LOG(INFO) << "match failed. ";
+//                 }
+//             } catch (const std::exception& e) {
+//                 LOG(ERROR) << "Exception in MatchFullSubmap at index " << i << ": " << e.what();
+//             }
+            
+//         // 记录任务结束时间并计算持续时间
+//         auto end_time = std::chrono::steady_clock::now();
+//         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+//         // 安全存储计时结果
+//         {
+//             std::lock_guard<std::mutex> lock(timing_mutex);
+//             task_durations[i] = duration.count();
+//         }
+//         LOG(INFO) << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+//                   << "Task " << i << " completed in " << duration.count() << " ms";
+
+
+//             matched_counter.DecrementCount();
+//         });
+//         thread_pool->Schedule(std::move(task));
+//     }
+//     matched_counter.Wait();
+
+//     if (!has_matched) 
+//     {
+//         LOG(ERROR) << "No matches found!";
+//         return false;
+//     }
+
+//               //计时开始
+//           auto start_time1 = std::chrono::steady_clock::now();
+
+//     int max_position = std::distance(score_set.begin(), std::max_element(score_set.begin(), score_set.end()));
+//     *best_score = score_set[max_position];
+//     *best_pose_estimate = pose_set[max_position];
+
+//     auto csm = std::make_unique<scan_matching::CeresScanMatcher2D>(
+//         options_.constraint_builder_options().ceres_scan_matcher_options());
+
+//     ceres::Solver::Summary unused_summary;
+
+//     try {
+//         csm->Match(best_pose_estimate->translation(), *best_pose_estimate,
+//                    filtered_point_cloud, *submaps[max_position],
+//                    best_pose_estimate, &unused_summary);
+//     } catch (const std::exception& e) {
+//         LOG(ERROR) << "CeresScanMatcher2D failed: " << e.what();
+//         return false;
+//     }
+
+//     // 记录任务结束时间并计算持续时间
+//         auto end_time1 = std::chrono::steady_clock::now();
+//         auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(end_time1 - start_time1);
+//         LOG(INFO) << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+//                   << "CeresScanMatcher2D completed in " << duration1.count() << " ms";
+
+//   LOG(INFO) << "\n"
+//             << "---------------------------------------------------\n"
+//             << "data_.submap_data.size() =" << data_.submap_data.size() << "\n"
+//             << "(" << search_submap_range << "m)nearby_submaps.size() =" << nearby_submaps.size() << "\n"
+//             << "^^^^^^^^Compare it with the number of frozen submaps published on the `/submap_list` topic.^^^^^^^^\n"
+//             << "[GlobalPositioningTest] cutoff:" <<  cutoff << "\n"
+//             << "filtered_point_cloud.points_.size(): " << filtered_point_cloud.size() << "\n"
+//             << "[GlobalPositioningTest] input cloud size =" << laser_point_cloud.size() << "\n"
+//             << "[GlobalPositioningTest] best_pose_estimate:" << best_pose_estimate->translation().x() << ", "
+//                                                              << best_pose_estimate->translation().y() << ", "
+//                                                              << best_pose_estimate->rotation().angle() <<"\n"
+//             << "[GlobalPositioningTest] best_score:" <<  *best_score << "\n"
+//             << "---------------------------------------------------\n";
+//   return true;
+//   }
+
+//BETA-1-Match
 bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_initial_pose,
                                         const cartographer::sensor::TimedPointCloud& laser_point_cloud,
                                         float cutoff, 
@@ -114,6 +307,7 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
   //子图扫描范围
   double search_submap_range = 10.0; //m
   std::vector<cartographer::mapping::SubmapId> nearby_submaps;
+  std::vector<transform::Rigid2d> init_pose_local_list;
 
   for (const auto& p : cartographer::sensor::VoxelFilter(laser_point_cloud, 0.05))
     filtered_point_cloud.push_back(
@@ -131,6 +325,7 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
     }
 
     const auto global_submap_pose = data_.global_submap_poses_2d.at(id).global_pose;
+    init_pose_local_list.push_back(global_submap_pose.inverse() * cartographer::transform::Project2D(Given_initial_pose));
     const double distance = 
       (global_submap_pose.translation() - 
         Given_initial_pose.translation().head<2>()).norm();
@@ -149,7 +344,6 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
 
   for (const auto& id : nearby_submaps) 
     {
-      // const auto& standby_submap = data_.submap_data.at(id);
         auto task = absl::make_unique<common::Task>();
         task->SetWorkItem([this, &matchers, &created_counter, index, submap_id = id, &submaps] {
             try {
@@ -191,8 +385,8 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
     for (size_t i = 0; i < matcher_size; i++) 
     {
         auto task = absl::make_unique<common::Task>();
-        task->SetWorkItem([i, &filtered_point_cloud, &matchers, &score_set, &pose_set, cutoff, &matched_counter, &has_matched, &task_durations, &timing_mutex] {
-          //计时开始
+        task->SetWorkItem([i, &filtered_point_cloud, &matchers, &score_set, &pose_set, cutoff, &matched_counter, &has_matched, &task_durations, &timing_mutex, init_pose_local_list] {
+          //计时开始                                             
           auto start_time = std::chrono::steady_clock::now();
 
             if (!matchers[i]) 
@@ -205,7 +399,7 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
             transform::Rigid2d pose_estimate = transform::Rigid2d::Identity();
             LOG(INFO) << "Processing2 matcher index: " << i;
             try {
-                if (matchers[i]->MatchFullSubmap(filtered_point_cloud, cutoff, &score, &pose_estimate)) 
+                if (matchers[i]->Match(init_pose_local_list[i], filtered_point_cloud, cutoff, &score, &pose_estimate)) 
                 {
                     score_set[i] = score;
                     pose_set[i] = pose_estimate;
@@ -240,6 +434,10 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
         LOG(ERROR) << "No matches found!";
         return false;
     }
+
+              //计时开始
+          auto start_time1 = std::chrono::steady_clock::now();
+
     int max_position = std::distance(score_set.begin(), std::max_element(score_set.begin(), score_set.end()));
     *best_score = score_set[max_position];
     *best_pose_estimate = pose_set[max_position];
@@ -258,6 +456,12 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
         return false;
     }
 
+    // 记录任务结束时间并计算持续时间
+        auto end_time1 = std::chrono::steady_clock::now();
+        auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(end_time1 - start_time1);
+        LOG(INFO) << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                  << "CeresScanMatcher2D completed in " << duration1.count() << " us";
+
   LOG(INFO) << "\n"
             << "---------------------------------------------------\n"
             << "data_.submap_data.size() =" << data_.submap_data.size() << "\n"
@@ -273,7 +477,6 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
             << "---------------------------------------------------\n";
   return true;
   }
-
 
 
 
