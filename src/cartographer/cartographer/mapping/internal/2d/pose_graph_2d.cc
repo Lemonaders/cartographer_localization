@@ -40,6 +40,7 @@
 
 
 // 添加代码
+#include "cartographer/mapping/2d/probability_grid.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "cartographer/sensor/point_cloud.h"
 #include <chrono>
@@ -263,9 +264,9 @@ PoseGraph2D::~PoseGraph2D() {
 
 //     // 记录任务结束时间并计算持续时间
 //         auto end_time1 = std::chrono::steady_clock::now();
-//         auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(end_time1 - start_time1);
+//         auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(end_time1 - start_time1);
 //         LOG(INFO) << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-//                   << "CeresScanMatcher2D completed in " << duration1.count() << " ms";
+//                   << "CeresScanMatcher2D completed in " << duration1.count() << " us";
 
 //   LOG(INFO) << "\n"
 //             << "---------------------------------------------------\n"
@@ -282,8 +283,9 @@ PoseGraph2D::~PoseGraph2D() {
 //             << "---------------------------------------------------\n";
 //   return true;
 //   }
+/*test*/
 
-//BETA-1-Match
+//BETA-1-Match()
 bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_initial_pose,
                                         const cartographer::sensor::TimedPointCloud& laser_point_cloud,
                                         float cutoff, 
@@ -305,10 +307,9 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
   assert(thread_pool != nullptr);
   cartographer::sensor::PointCloud filtered_point_cloud;
   //子图扫描范围
-  double search_submap_range = 10.0; //m
+  double search_submap_range = 15.0; //m
   std::vector<cartographer::mapping::SubmapId> nearby_submaps;
   std::vector<transform::Rigid2d> init_pose_local_list;
-
   for (const auto& p : cartographer::sensor::VoxelFilter(laser_point_cloud, 0.05))
     filtered_point_cloud.push_back(
         cartographer::sensor::RangefinderPoint{p.position});
@@ -330,9 +331,9 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
       (global_submap_pose.translation() - 
         Given_initial_pose.translation().head<2>()).norm();
     
-    if (distance <= search_submap_range) {
+    if (distance <= search_submap_range) {   
       nearby_submaps.push_back(id);
-    }
+    } 
   }
   // 创建submap数量的FastCorrelativeScanMatcher2D
   int32_t submap_size = static_cast<int>(nearby_submaps.size());
@@ -379,8 +380,6 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
     //计时相关
     std::vector<double> task_durations(static_cast<int>(matcher_size), 0.0);  // 存储每个任务耗时(毫秒)
     std::mutex timing_mutex; 
-
-
 
     for (size_t i = 0; i < matcher_size; i++) 
     {
@@ -431,12 +430,12 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
 
     if (!has_matched) 
     {
-        LOG(ERROR) << "No matches found!";
+        LOG(ERROR) << "Now initiating the fused submap method for matching\n";
         return false;
     }
 
-              //计时开始
-          auto start_time1 = std::chrono::steady_clock::now();
+    //计时开始1
+    auto start_time1 = std::chrono::steady_clock::now();
 
     int max_position = std::distance(score_set.begin(), std::max_element(score_set.begin(), score_set.end()));
     *best_score = score_set[max_position];
@@ -456,7 +455,7 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
         return false;
     }
 
-    // 记录任务结束时间并计算持续时间
+    // 记录任务结束时间并计算持续时间1
         auto end_time1 = std::chrono::steady_clock::now();
         auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(end_time1 - start_time1);
         LOG(INFO) << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
@@ -478,6 +477,291 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
   return true;
   }
 
+//BETA-2-Fusion Submap
+// bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_initial_pose,
+//                                         const cartographer::sensor::TimedPointCloud& laser_point_cloud,
+//                                         float cutoff, 
+//                                         transform::Rigid2d* best_pose_estimate, 
+//                                         float* best_score){
+//     // ---------- 输入检测 ----------
+//   if (laser_point_cloud.empty()) {
+//   LOG(ERROR) << "\n"
+//                 << "<<<<<<<<<<<<<<<<<<<<<<WARNING>>>>>>>>>>>>>>>>>>>>>>\n"
+//                 << "[GlobalPositioningTest] laser_point_cloud is empty.\n"
+//                 << "<<<<<<<<<<<<<<<<<<<<<<WARNING>>>>>>>>>>>>>>>>>>>>>>\n";
+//   }
+//   LOG(INFO) << "\n"
+//                 << "---------------------------------------------------\n"
+//                 << "[GlobalPositioningTest] Given_initial_pose:" << Given_initial_pose.DebugString() << ".\n"
+//                 << "---------------------------------------------------\n";
+
+//   auto thread_pool = std::make_unique<common::ThreadPool>(std::thread::hardware_concurrency());
+//   assert(thread_pool != nullptr);
+//   cartographer::sensor::PointCloud filtered_point_cloud;
+//   //子图扫描范围
+//   double search_submap_range = 15.0; //m
+//   std::vector<cartographer::mapping::SubmapId> nearby_submaps;
+//   std::vector<transform::Rigid2d> init_pose_local_list;
+//   for (const auto& p : cartographer::sensor::VoxelFilter(laser_point_cloud, 0.05))
+//     filtered_point_cloud.push_back(
+//         cartographer::sensor::RangefinderPoint{p.position});
+
+//   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<！！！！！！>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//   //                                                     重定位时需要保持小车保持静止
+//   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<！！！！！！>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//   // 基于初始位姿筛选子图
+//   for (const auto& submap_id_data : data_.submap_data) {
+//     const SubmapId& id = submap_id_data.id;
+
+//     if (id.trajectory_id != 0) {
+//       continue;
+//     }
+
+//     const auto global_submap_pose = data_.global_submap_poses_2d.at(id).global_pose;
+//     init_pose_local_list.push_back(global_submap_pose.inverse() * cartographer::transform::Project2D(Given_initial_pose));
+//     const double distance = 
+//       (global_submap_pose.translation() - 
+//         Given_initial_pose.translation().head<2>()).norm();
+    
+//     if (distance <= search_submap_range) {   
+//       nearby_submaps.push_back(id);
+//     } 
+//   }
+//   // 创建submap数量的FastCorrelativeScanMatcher2D
+//   int32_t submap_size = static_cast<int>(nearby_submaps.size());
+//   absl::BlockingCounter created_counter{submap_size};
+
+//   std::vector<std::shared_ptr<scan_matching::FastCorrelativeScanMatcher2D>> matchers(submap_size);
+//   std::vector<const cartographer::mapping::Grid2D*> submaps(submap_size);
+//   size_t index = 0;
+
+//   for (const auto& id : nearby_submaps) 
+//     {
+//         auto task = absl::make_unique<common::Task>();
+//         task->SetWorkItem([this, &matchers, &created_counter, index, submap_id = id, &submaps] {
+//             try {
+//                 const auto& submap_data = data_.submap_data.at(submap_id);
+//                 if (!submap_data.submap) {
+//                     LOG(ERROR) << "Submap is null for index " << index;
+//                     throw std::runtime_error("Submap is null");
+//                 }
+//                 submaps[index] = static_cast<const Submap2D*>(submap_data.submap.get())->grid();
+//                 matchers[index] = std::make_unique<scan_matching::FastCorrelativeScanMatcher2D>(
+//                     *submaps[index],
+//                     options_.constraint_builder_options().fast_correlative_scan_matcher_options());
+//                 LOG(INFO) << "Task completed for index: " << index;
+//             } catch (const std::exception& e) {
+//                 LOG(ERROR) << "Error in task for index " << index << ": " << e.what();
+//             }
+//             created_counter.DecrementCount();
+//         });
+
+//         thread_pool->Schedule(std::move(task));
+//         index++;
+//     }
+//     LOG(INFO) << "Total submaps processed: " << index;
+//     created_counter.Wait();
+
+//     //位姿与得分
+//     size_t matcher_size = index;
+//     std::vector<float> score_set(static_cast<int>(matcher_size), -std::numeric_limits<float>::infinity());
+//     std::vector<transform::Rigid2d> pose_set(matcher_size);    
+//     absl::BlockingCounter matched_counter{static_cast<int>(matcher_size)};
+//     std::atomic_bool has_matched{false};   
+
+//     //计时相关
+//     std::vector<double> task_durations(static_cast<int>(matcher_size), 0.0);  // 存储每个任务耗时(毫秒)
+//     std::mutex timing_mutex; 
+
+//     for (size_t i = 0; i < matcher_size; i++) 
+//     {
+//         auto task = absl::make_unique<common::Task>();
+//         task->SetWorkItem([i, &filtered_point_cloud, &matchers, &score_set, &pose_set, cutoff, &matched_counter, &has_matched, &task_durations, &timing_mutex, init_pose_local_list] {
+//           //计时开始                                             
+//           auto start_time = std::chrono::steady_clock::now();
+
+//             if (!matchers[i]) 
+//             {
+//                 LOG(ERROR) << "Matcher is null at index " << i;
+//                 matched_counter.DecrementCount();
+//                 return;
+//             }
+//             float score = -1;
+//             transform::Rigid2d pose_estimate = transform::Rigid2d::Identity();
+//             LOG(INFO) << "Processing2 matcher index: " << i;
+//             try {
+//                 if (matchers[i]->Match(init_pose_local_list[i], filtered_point_cloud, cutoff, &score, &pose_estimate)) 
+//                 {
+//                     score_set[i] = score;
+//                     pose_set[i] = pose_estimate;
+//                     has_matched = true;
+//                 } else {
+//                   LOG(INFO) << "match failed. ";
+//                 }
+//             } catch (const std::exception& e) {
+//                 LOG(ERROR) << "Exception in MatchFullSubmap at index " << i << ": " << e.what();
+//             }
+            
+//         // 记录任务结束时间并计算持续时间
+//         auto end_time = std::chrono::steady_clock::now();
+//         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+//         // 安全存储计时结果
+//         {
+//             std::lock_guard<std::mutex> lock(timing_mutex);
+//             task_durations[i] = duration.count();
+//         }
+//         LOG(INFO) << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"
+//                   << "Task " << i << " completed in " << duration.count() << " ms";
+
+
+//             matched_counter.DecrementCount();
+//         });
+//         thread_pool->Schedule(std::move(task));
+//     }
+//     matched_counter.Wait();
+
+//     if (!has_matched) 
+//     {
+//         LOG(INFO) << "********************************************************\n"
+//                   << "No matches found!\n"
+//                   << "Now initiating the fused submap method for matching\n";
+//         // 先取出所有候选子图的 ProbabilityGrid
+//         std::vector<const cartographer::mapping::ProbabilityGrid*> submaps_to_fuse;
+//         for (const auto& id : nearby_submaps) {
+//           const auto& submap_data = data_.submap_data.at(id);
+//           const auto* submap_2d =
+//               static_cast<const cartographer::mapping::Submap2D*>(submap_data.submap.get());
+//           submaps_to_fuse.push_back(static_cast<const cartographer::mapping::ProbabilityGrid*>(submap_2d->grid()));
+//         }
+
+//         // 获取融合网格的参考坐标系（第一个子图的全局位姿）
+//         const transform::Rigid2d global_fused_submap_pose =
+//             data_.global_submap_poses_2d.at(nearby_submaps.front()).global_pose;
+//         const auto global_fused_submap_pose_float = global_fused_submap_pose.cast<float>();
+
+//         // 创建融合网格（使用第一个子图的配置）
+//         const cartographer::mapping::Grid2D& first_grid = *submaps_to_fuse.front();
+//         const auto& first_limits = first_grid.limits();
+
+//         // 使用正确的ProbabilityGrid构造函数
+//         auto fused_grid = std::make_unique<cartographer::mapping::ProbabilityGrid>(
+//             first_limits, &conversion_tables_); // 假设有可用的conversion_tables_
+
+//         // 将子图数据融合到统一网格
+//         for (size_t i = 0; i < nearby_submaps.size(); ++i) {
+//           const auto& id = nearby_submaps[i];
+//           const auto global_submap_pose =
+//               data_.global_submap_poses_2d.at(id).global_pose.cast<float>();
+//           const auto* grid = submaps_to_fuse[i];
+          
+//           // 获取当前子图的网格边界
+//           const auto& cell_limits = grid->limits().cell_limits();
+          
+//           // 遍历子图的所有单元格
+//           for (int y = 0; y < cell_limits.num_y_cells; ++y) {
+//             for (int x = 0; x < cell_limits.num_x_cells; ++x) {
+//               const Eigen::Array2i cell_index(x, y);
+              
+//               // 跳过未知单元格
+//               if (!grid->IsKnown(cell_index)) continue;
+              
+//               // 使用MapLimits计算单元格中心坐标
+//               const Eigen::Vector2f src_center = grid->limits().GetCellCenter(cell_index);
+              
+//               // 坐标系转换：子图局部 → 全局 → 融合网格局部
+//               const Eigen::Vector2f global_center = global_submap_pose * src_center;
+//               const Eigen::Vector2f dst_center = 
+//                   global_fused_submap_pose_float.inverse() * global_center;
+              
+//               // 获取目标网格索引并设置概率值
+//               const Eigen::Array2i dst_index = fused_grid->limits().GetCellIndex(dst_center);//加入limits().部分
+//               if (fused_grid->limits().Contains(dst_index)) {
+//                 fused_grid->SetProbability(
+//                     dst_index, 
+//                       grid->GetProbability(cell_index));}
+//             }
+//           }
+//         }
+
+//         // 5. 用融合后的网格构造一个 FastCorrelativeScanMatcher2D
+//         auto fused_matcher =
+//             std::make_unique<scan_matching::FastCorrelativeScanMatcher2D>(
+//                 *fused_grid,
+//                 options_.constraint_builder_options()
+//                     .fast_correlative_scan_matcher_options());
+
+//         // 6. 计算在 fused_grid 局部坐标系下的初始估计
+//         //    这里我们统一把 Given_initial_pose 转到 fused_grid 的局部坐标系
+//         //    取附近第 0 个子图的全局位姿作为参考
+//         const transform::Rigid2d init_pose_in_fused =
+//             (global_fused_submap_pose.inverse() *
+//             transform::Project2D(Given_initial_pose))
+//                 .cast<double>();
+
+//         // 7. 用 fused_matcher 做匹配
+//         float score = -1;
+//         transform::Rigid2d pose_estimate = transform::Rigid2d::Identity();
+//         std::vector<transform::Rigid2d> pose_set(1);   
+//         if (fused_matcher->Match(init_pose_in_fused,
+//                                 filtered_point_cloud,
+//                                 cutoff,
+//                                 &score,
+//                                 &pose_estimate)) {
+//           LOG(INFO) << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+//                     << "Matched with fused submap! score = " << score << "\n"
+//                     << "pose_estimate = " << pose_estimate;
+
+//           pose_set[0] = pose_estimate;
+//           has_matched = true;
+//           return true;
+//         } else {
+//           LOG(INFO) << "Fused submap matching failed.";
+//           return false;
+//         }
+//     }
+
+//     //计时开始1
+//     auto start_time1 = std::chrono::steady_clock::now();
+
+//     int max_position = std::distance(score_set.begin(), std::max_element(score_set.begin(), score_set.end()));
+//     *best_score = score_set[max_position];
+//     *best_pose_estimate = pose_set[max_position];
+
+//     auto csm = std::make_unique<scan_matching::CeresScanMatcher2D>(
+//         options_.constraint_builder_options().ceres_scan_matcher_options());
+
+//     ceres::Solver::Summary unused_summary;
+
+//     try {
+//         csm->Match(best_pose_estimate->translation(), *best_pose_estimate,
+//                    filtered_point_cloud, *submaps[max_position],
+//                    best_pose_estimate, &unused_summary);
+//     } catch (const std::exception& e) {
+//         LOG(ERROR) << "CeresScanMatcher2D failed: " << e.what();
+//         return false;
+//     }
+
+//     // 记录任务结束时间并计算持续时间1
+//         auto end_time1 = std::chrono::steady_clock::now();
+//         auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(end_time1 - start_time1);
+//         LOG(INFO) << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+//                   << "CeresScanMatcher2D completed in " << duration1.count() << " us";
+
+//   LOG(INFO) << "\n"
+//             << "---------------------------------------------------\n"
+//             << "data_.submap_data.size() =" << data_.submap_data.size() << "\n"
+//             << "(" << search_submap_range << "m)nearby_submaps.size() =" << nearby_submaps.size() << "\n"
+//             << "^^^^^^^^Compare it with the number of frozen submaps published on the `/submap_list` topic.^^^^^^^^\n"
+//             << "[GlobalPositioningTest] cutoff:" <<  cutoff << "\n"
+//             << "filtered_point_cloud.points_.size(): " << filtered_point_cloud.size() << "\n"
+//             << "[GlobalPositioningTest] input cloud size =" << laser_point_cloud.size() << "\n"
+//             << "[GlobalPositioningTest] best_pose_estimate:" << best_pose_estimate->translation().x() << ", "
+//                                                              << best_pose_estimate->translation().y() << ", "
+//                                                              << best_pose_estimate->rotation().angle() <<"\n"
+//             << "[GlobalPositioningTest] best_score:" <<  *best_score << "\n"
+//             << "---------------------------------------------------\n";
+//   return true;
+//   }
 
 
 

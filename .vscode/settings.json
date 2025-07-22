@@ -72,6 +72,7 @@
         "regex": "cpp",
         "valarray": "cpp",
         "*.inc": "cpp",
-        "*.txx": "cpp"
+        "*.txx": "cpp",
+        "future": "cpp"
     }
 }
