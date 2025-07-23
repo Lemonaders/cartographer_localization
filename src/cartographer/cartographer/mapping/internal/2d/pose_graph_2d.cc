@@ -283,7 +283,7 @@ PoseGraph2D::~PoseGraph2D() {
 //             << "---------------------------------------------------\n";
 //   return true;
 //   }
-/*test*/
+
 
 //BETA-1-Match()
 bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_initial_pose,
@@ -625,7 +625,6 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
 //         LOG(INFO) << "********************************************************\n"
 //                   << "No matches found!\n"
 //                   << "Now initiating the fused submap method for matching\n";
-//         // 先取出所有候选子图的 ProbabilityGrid
 //         std::vector<const cartographer::mapping::ProbabilityGrid*> submaps_to_fuse;
 //         for (const auto& id : nearby_submaps) {
 //           const auto& submap_data = data_.submap_data.at(id);
@@ -633,48 +632,32 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
 //               static_cast<const cartographer::mapping::Submap2D*>(submap_data.submap.get());
 //           submaps_to_fuse.push_back(static_cast<const cartographer::mapping::ProbabilityGrid*>(submap_2d->grid()));
 //         }
-
-//         // 获取融合网格的参考坐标系（第一个子图的全局位姿）
 //         const transform::Rigid2d global_fused_submap_pose =
 //             data_.global_submap_poses_2d.at(nearby_submaps.front()).global_pose;
 //         const auto global_fused_submap_pose_float = global_fused_submap_pose.cast<float>();
 
-//         // 创建融合网格（使用第一个子图的配置）
 //         const cartographer::mapping::Grid2D& first_grid = *submaps_to_fuse.front();
 //         const auto& first_limits = first_grid.limits();
 
-//         // 使用正确的ProbabilityGrid构造函数
 //         auto fused_grid = std::make_unique<cartographer::mapping::ProbabilityGrid>(
-//             first_limits, &conversion_tables_); // 假设有可用的conversion_tables_
-
-//         // 将子图数据融合到统一网格
+//             first_limits, &conversion_tables_); 
 //         for (size_t i = 0; i < nearby_submaps.size(); ++i) {
 //           const auto& id = nearby_submaps[i];
 //           const auto global_submap_pose =
 //               data_.global_submap_poses_2d.at(id).global_pose.cast<float>();
 //           const auto* grid = submaps_to_fuse[i];
           
-//           // 获取当前子图的网格边界
 //           const auto& cell_limits = grid->limits().cell_limits();
-          
-//           // 遍历子图的所有单元格
 //           for (int y = 0; y < cell_limits.num_y_cells; ++y) {
 //             for (int x = 0; x < cell_limits.num_x_cells; ++x) {
 //               const Eigen::Array2i cell_index(x, y);
-              
-//               // 跳过未知单元格
+
 //               if (!grid->IsKnown(cell_index)) continue;
-              
-//               // 使用MapLimits计算单元格中心坐标
 //               const Eigen::Vector2f src_center = grid->limits().GetCellCenter(cell_index);
-              
-//               // 坐标系转换：子图局部 → 全局 → 融合网格局部
 //               const Eigen::Vector2f global_center = global_submap_pose * src_center;
 //               const Eigen::Vector2f dst_center = 
 //                   global_fused_submap_pose_float.inverse() * global_center;
-              
-//               // 获取目标网格索引并设置概率值
-//               const Eigen::Array2i dst_index = fused_grid->limits().GetCellIndex(dst_center);//加入limits().部分
+//               const Eigen::Array2i dst_index = fused_grid->limits().GetCellIndex(dst_center);
 //               if (fused_grid->limits().Contains(dst_index)) {
 //                 fused_grid->SetProbability(
 //                     dst_index, 
@@ -683,22 +666,15 @@ bool PoseGraph2D::GlobalPositioningTest(cartographer::transform::Rigid3d Given_i
 //           }
 //         }
 
-//         // 5. 用融合后的网格构造一个 FastCorrelativeScanMatcher2D
 //         auto fused_matcher =
 //             std::make_unique<scan_matching::FastCorrelativeScanMatcher2D>(
 //                 *fused_grid,
 //                 options_.constraint_builder_options()
 //                     .fast_correlative_scan_matcher_options());
-
-//         // 6. 计算在 fused_grid 局部坐标系下的初始估计
-//         //    这里我们统一把 Given_initial_pose 转到 fused_grid 的局部坐标系
-//         //    取附近第 0 个子图的全局位姿作为参考
 //         const transform::Rigid2d init_pose_in_fused =
 //             (global_fused_submap_pose.inverse() *
 //             transform::Project2D(Given_initial_pose))
 //                 .cast<double>();
-
-//         // 7. 用 fused_matcher 做匹配
 //         float score = -1;
 //         transform::Rigid2d pose_estimate = transform::Rigid2d::Identity();
 //         std::vector<transform::Rigid2d> pose_set(1);   

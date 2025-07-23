@@ -1,4 +1,13 @@
 编译：catkin_make_isolated --install --use-ninja
+地图保存：1.停止地图构建
+			rosservice call /finish_trajectory 0
+		2.生成.pbstream文件
+			rosservice call /write_state "{filename: '<绝对路径>/***.pbstream'}"
+		3.使用catro提供文件，将.pbstream文件转为.yaml和.pgm文件
+			rosrun cartographer_ros cartographer_pbstream_to_ros_map 
+				-map_filestem=<绝对路径>/<地图名字> 
+				-pbstream_filename=<绝对路径>/<.pbstream名字> 
+				-resolution=0.05
 
 方案一：修改文件说明
 	1、node_main.cc：				添加了initpose的订阅，通过callback实现trajectories以新位姿的重新启动。
@@ -20,6 +29,10 @@
 	9、/src/cartographer_ros/cartographer_ros/cartographer_ros/node.cc					写入点云缓存与点云获取函数
 	10、/install_isolated/include/cartographer下mapping和sensor文件夹下复制了internal      避免posegraph2d编译错误
 
+	其他说明：
+		建图：为避免空白位置出现灰色区域，可以调整TRAJECTORY_BUILDER_2D下miss_probability空置概率下调，测试0.46可以在少部分重复下实现比较好的地图效果，有下调空间
+		定位：避免建图过程中出现较多的路线重叠，减少submap重复带来的时间开销
+
 
 
 TODO:	（一）弃用---------限制并发全图匹配的子图数量。
@@ -32,7 +45,7 @@ TODO:	（一）弃用---------限制并发全图匹配的子图数量。
 		（三）弃用---------建图优化
 			避免建图路径的交叉，防止同一位置的submap过于集中导致的匹配时间过长。
 
-		（四）定位建图参数优化
+		（四）弃用---------定位建图参数优化
 			充分了解lua文件各参数含义，参数调优以优化性能。
 
 		（五）弃用---------尝试优化
@@ -42,16 +55,24 @@ TODO:	（一）弃用---------限制并发全图匹配的子图数量。
 			目前点云回调只在重启时缓存一帧，如果在开机后机器人发生移动，缓存点云信息便会失去实时性，
 			尝试initpose回调中重启点云回调，或者直接读取实时点云信息。
 
-		（七）写死参数注意
+		（七）弃用---------写死参数注意
 			pose_graph_2d.cc
 			114  double search_submap_range = 10.0; //m
 			该参数限制了检测子图范围，为内定参数，后期可想办法暴露至lua中设置
 		
 		(八) 完成---------将耗时非常多的MatchFullSubmap()更换为Match()
 
-		(九) Submap区域融合
+		(九) 完成---------Submap区域融合
 			在远离轨迹的区域，尤其是存在多角度遮挡的非轨迹区域，由于每张submap都只包含该区域的部分视角，导致匹配必定失败
 			因此，要么在用户手册声明靠近轨迹定位，要么需要开发submap融合代码，但是可能会导致匹配速度下降
+		
+		(十) 暂不实现---------使用Match()进行全局搜索。
+			无法利用Match()实现，仍然需要Matchfullsubmap()但是强需要cutoff的高分继承来加速
+
+		(十一) 收益极低放弃---------地图灰色区域修整算法
+			收益：可视化好看
+			代价：可能会导致部分位置概率值发生规划之外的变化
+			工程量：地图修改部分没有给出概率修改接口，工程量极大，保存地图部分无法读取对应数据，需要重写接口、重写逻辑、重写保存回传代码，工程量大于重定位工程实现
 
 
 参考网址：

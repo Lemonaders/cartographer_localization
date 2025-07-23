@@ -1,0 +1,6 @@
+image: /home/so/map/map4/map44.pgm
+resolution: 0.05
+origin: [-67.911, -33.6449, 0.0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
