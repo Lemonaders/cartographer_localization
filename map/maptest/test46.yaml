@@ -1,0 +1,6 @@
+image: /home/so/map/maptest/test46.pgm
+resolution: 0.05
+origin: [-64.8227, -69.8995, 0.0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
