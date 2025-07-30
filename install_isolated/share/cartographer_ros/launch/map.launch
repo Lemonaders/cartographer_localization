@@ -20,7 +20,8 @@
   <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="
           -configuration_directory $(find cartographer_ros)/configuration_files
-          -configuration_basename map.lua"
+          -configuration_basename map.lua
+          -collect_metrics false"
       output="screen">
     <remap from="scan" to="scan" />
   </node>

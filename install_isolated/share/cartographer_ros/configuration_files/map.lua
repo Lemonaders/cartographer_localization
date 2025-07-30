@@ -96,7 +96,7 @@ TRAJECTORY_BUILDER_2D = {
       probability_grid_range_data_inserter = {
         insert_free_space = true,
         hit_probability = 0.55,
-        miss_probability = 0.44,  --0.49
+        miss_probability = 0.46,  --0.49
       },
       tsdf_range_data_inserter = {
         truncation_distance = 0.3,

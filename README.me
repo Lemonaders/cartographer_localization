@@ -9,10 +9,12 @@
 				-pbstream_filename=<绝对路径>/<.pbstream名字> 
 				-resolution=0.05
 
+Match():Given_initial_pose出现致命失误，Match()函数传入的initpose是全局坐标，传入局部参考位姿必报错。实验结果是这样的，原因暂不明。
+
 方案一：修改文件说明
 	1、node_main.cc：				添加了initpose的订阅，通过callback实现trajectories以新位姿的重新启动。
 	2、occupancy_grid_node_main：	添加了标志位，在launch中设置参数来决定是否发布地图更新。
-	3、添加了	  map.launch
+	3、添加了	  	map.launch
 				localization.launch
 				map.lua
 				localization.lua
@@ -28,6 +30,9 @@
 	8、/src/cartographer_ros/cartographer_ros/cartographer_ros/node.h					写入点云缓存与点云获取函数
 	9、/src/cartographer_ros/cartographer_ros/cartographer_ros/node.cc					写入点云缓存与点云获取函数
 	10、/install_isolated/include/cartographer下mapping和sensor文件夹下复制了internal      避免posegraph2d编译错误
+	11、src/cartographer/cartographer/mapping/internal/2d/scan_matching/fast_correlative_scan_matcher_2d.h          优化MatchFullSubmap
+	12、src/cartographer/cartographer/mapping/internal/2d/scan_matching/fast_correlative_scan_matcher_2d.cc         优化MatchFullSubmap
+	修改分辨率参数，减少子图搜索范围
 
 	其他说明：
 		建图：为避免空白位置出现灰色区域，可以调整TRAJECTORY_BUILDER_2D下miss_probability空置概率下调，测试0.46可以在少部分重复下实现比较好的地图效果，有下调空间
@@ -40,7 +45,7 @@ TODO:	（一）弃用---------限制并发全图匹配的子图数量。
 			前一轮的 N 副子图匹配得到的 score 还能作为下一轮子图匹配的 cutoff，有效利用分支定界的特点加速重定位。
 
 		（二）完成---------提供大概的先验位置减少需要匹配的子图数量。
-			重定位就可以只搜索用户指定位置半径3米内的子图.
+			重定位就可以只搜索指定位置半径10米内的子图.
 
 		（三）弃用---------建图优化
 			避免建图路径的交叉，防止同一位置的submap过于集中导致的匹配时间过长。
@@ -62,17 +67,21 @@ TODO:	（一）弃用---------限制并发全图匹配的子图数量。
 		
 		(八) 完成---------将耗时非常多的MatchFullSubmap()更换为Match()
 
-		(九) 完成---------Submap区域融合
-			在远离轨迹的区域，尤其是存在多角度遮挡的非轨迹区域，由于每张submap都只包含该区域的部分视角，导致匹配必定失败
-			因此，要么在用户手册声明靠近轨迹定位，要么需要开发submap融合代码，但是可能会导致匹配速度下降
 		
-		(十) 暂不实现---------使用Match()进行全局搜索。
+		(九) 暂不实现---------使用Match()进行全局搜索。
 			无法利用Match()实现，仍然需要Matchfullsubmap()但是强需要cutoff的高分继承来加速
 
-		(十一) 收益极低放弃---------地图灰色区域修整算法
+		(十) 收益极低放弃---------地图灰色区域修整算法
 			收益：可视化好看
 			代价：可能会导致部分位置概率值发生规划之外的变化
 			工程量：地图修改部分没有给出概率修改接口，工程量极大，保存地图部分无法读取对应数据，需要重写接口、重写逻辑、重写保存回传代码，工程量大于重定位工程实现
+			
+		(十一) Submap区域融合
+			在远离轨迹的区域，尤其是存在多角度遮挡的非轨迹区域，由于每张submap都只包含该区域的部分视角，导致匹配失败
+			因此，要么靠近轨迹定位，要么需要开发submap融合代码，但是可能会导致匹配速度下降
+			
+		(十二) 自适应的搜索区域
+			从小到大自动扩展搜索半径double search_submap_range，但需要测试是否会陷入局部最优解？
 
 
 参考网址：

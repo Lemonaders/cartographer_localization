@@ -27,7 +27,8 @@
       type="cartographer_node" args="
           -configuration_directory $(find cartographer_ros)/configuration_files
           -configuration_basename localization.lua
-          -load_state_filename /home/so/map/map6/map6.pbstream"
+          -load_state_filename /home/so/map/map6/map6.pbstream
+          -collect_metrics false"
       output="screen">
 
   </node>

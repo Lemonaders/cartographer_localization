@@ -135,6 +135,16 @@ class FastCorrelativeScanMatcher2D {
   bool MatchFullSubmap(const sensor::PointCloud& point_cloud, float min_score,
                        float* score, transform::Rigid2d* pose_estimate) const;
 
+
+
+                       
+  bool OptimizedMatchFullSubmap(const sensor::PointCloud& point_cloud, float min_score,
+                       float* score, transform::Rigid2d* pose_estimate) const;
+
+
+
+
+
  private:
   // The actual implementation of the scan matcher, called by Match() and
   // MatchFullSubmap() with appropriate 'initial_pose_estimate' and
